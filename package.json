@@ -1,7 +1,7 @@
 {
   "name": "react-typescript",
   "version": "1.0.0",
-  "description": "React and TypeScript example starter project",
+  "description": "React and TypeScript example",
   "keywords": [
     "typescript",
     "react",
@@ -13,7 +13,8 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-scripts": "5.0.1",
-    "lucide-react": "1.28.0"
+    "lucide-react": "1.28.0",
+    "firebase": "^10.8.0"
   },
   "devDependencies": {
     "@types/react": "18.2.38",
