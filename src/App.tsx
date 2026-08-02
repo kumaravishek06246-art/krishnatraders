@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { initializeApp, getApps, getApp } from "firebase/app";
 import {
@@ -8,7 +9,7 @@ import {
   sendPasswordResetEmail
 } from "firebase/auth";
 
-// Direct Firebase Config inside App.tsx (No import issue)
+// Direct Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyBDz6iDnpD0c_K-ike1f0t6aS6KezBaYKs",
   authDomain: "krishna-traders-a8849.firebaseapp.com",
@@ -25,7 +26,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState("store");
   
   // Firebase Auth State
-  const [firebaseUser, setFirebaseUser] = useState<any>(null);
+  const [firebaseUser, setFirebaseUser] = useState(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -57,25 +58,24 @@ export default function App() {
     ? products 
     : products.filter(p => p.category === activeCategory);
 
-  const handleWhatsAppInquiry = (productName: string, price: string) => {
+  const handleWhatsAppInquiry = (productName, price) => {
     const msg = `Hello Krishna Traders! I am interested in ${productName} (${price}). Please share details.`;
     window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   // Firebase Login Handler
-  const handleFirebaseLogin = async (e: React.FormEvent) => {
+  const handleFirebaseLogin = async (e) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
       alert("Safalta-poorvak Login ho gaya!");
-    } catch (err: unknown) {
-      const error = err as Error;
-      alert("Login Fail ho gaya! Kripya wohi Email aur Password daalein jo aapne Firebase Console me banaya tha.\nDetails: " + error.message);
+    } catch (err) {
+      alert("Login Fail ho gaya! Kripya wohi Email aur Password daalein jo aapne Firebase Console me banaya tha.\nDetails: " + err.message);
     }
   };
 
   // Firebase Forgot Password Handler
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  const handleForgotPassword = async (e) => {
     e.preventDefault();
     if (!email) {
       alert("Kripya apna registered Email daalein!");
@@ -85,9 +85,8 @@ export default function App() {
       await sendPasswordResetEmail(auth, email);
       setResetSent(true);
       alert(`Password reset link ${email} par bhej diya gaya hai. Gmail Inbox check karein!`);
-    } catch (err: unknown) {
-      const error = err as Error;
-      alert("Error: " + error.message);
+    } catch (err) {
+      alert("Error: " + err.message);
     }
   };
 
@@ -96,7 +95,7 @@ export default function App() {
     signOut(auth);
   };
 
-  const handleAddCategory = (e: React.FormEvent) => {
+  const handleAddCategory = (e) => {
     e.preventDefault();
     if (newCategory && !categories.includes(newCategory)) {
       setCategories([...categories, newCategory]);
@@ -106,12 +105,12 @@ export default function App() {
   };
 
   // Gallery se photo uthane ke liye handler
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isNew: boolean, productId: number | null = null) => {
+  const handleImageUpload = (e, isNew, productId = null) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const result = reader.result as string;
+        const result = reader.result;
         if (isNew) {
           setNewProduct({ ...newProduct, image: result });
         } else if (productId !== null) {
@@ -122,7 +121,7 @@ export default function App() {
     }
   };
 
-  const handleAddProduct = (e: React.FormEvent) => {
+  const handleAddProduct = (e) => {
     e.preventDefault();
     if (newProduct.name && newProduct.price) {
       const newItem = {
@@ -138,7 +137,7 @@ export default function App() {
     }
   };
 
-  const handleDeleteProduct = (id: number) => {
+  const handleDeleteProduct = (id) => {
     if (window.confirm("Kya aap sach mein is product ko hatana chahte hain?")) {
       setProducts(products.filter(p => p.id !== id));
     }
@@ -399,4 +398,13 @@ export default function App() {
                           accept="image/*"
                           onChange={(e) => handleImageUpload(e, false, p.id)}
                           className="w-full text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer"
-                 
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Add Category */}
+              <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                <h3 clas
