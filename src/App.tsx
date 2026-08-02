@@ -92,76 +92,153 @@ export default function App() {
   const filteredProducts = activeCategory === 'All' ? products : products.filter(p => p.category === activeCategory);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white font-sans p-4">
-      <div className="flex justify-between items-center bg-slate-950 p-3 rounded-lg mb-6 border border-slate-800 max-w-4xl mx-auto">
-        <h1 className="font-bold text-emerald-400 text-sm">📍 KRISHNA TRADERS</h1>
+    <div className="min-h-screen bg-slate-900 text-white font-sans">
+      {/* Tailwind CDN Injection */}
+      <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+
+      {/* Top Bar */}
+      <div className="bg-slate-950 border-b border-slate-800 px-4 py-3 flex justify-between items-center sticky top-0 z-50">
+        <span className="font-bold text-emerald-400 text-sm">📍 KRISHNA TRADERS</span>
         <div className="flex gap-2">
-          <button onClick={() => setCurrentPage('store')} className={`px-3 py-1 rounded text-xs font-bold ${currentPage === 'store' ? 'bg-emerald-600' : 'bg-slate-800'}`}>Customer View</button>
-          <button onClick={() => setCurrentPage('admin')} className={`px-3 py-1 rounded text-xs font-bold ${currentPage === 'admin' ? 'bg-emerald-600' : 'bg-slate-800'}`}>Owner View</button>
+          <button 
+            onClick={() => setCurrentPage('store')} 
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentPage === 'store' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-800 text-slate-300'}`}
+          >
+            Customer View
+          </button>
+          <button 
+            onClick={() => setCurrentPage('admin')} 
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentPage === 'admin' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-800 text-slate-300'}`}
+          >
+            Owner View
+          </button>
         </div>
       </div>
 
       {currentPage === 'store' ? (
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-6 bg-slate-950 p-4 rounded-xl border border-slate-800">
-            <h2 className="text-xl font-bold text-emerald-400">KRISHNA TRADERS</h2>
-            <p className="text-xs text-slate-300 mt-1">📍 Pabhera, near Dhanarua, Dist-Patna (Bihar), 804451</p>
-            <p className="text-xs text-slate-400">📧 kumaravishek06246@gmail.com</p>
+        <div>
+          {/* Header Banner */}
+          <div className="bg-slate-950 px-6 py-8 text-center border-b border-slate-800 mb-6">
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mb-2 text-white">
+              KRISHNA <span className="text-emerald-400">TRADERS</span>
+            </h1>
+            <p className="text-xs text-slate-400 italic mb-3">
+              "Sahi Budget, Premium Quality – Aapke Ghar Ki Majboot Buniyaad!"
+            </p>
+            <div className="max-w-md mx-auto bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 space-y-1 text-left">
+              <p>📍 <b>Address:</b> Pabhera, near Dhanarua, Dist-Patna (Bihar), 804451</p>
+              <p>📧 <b>Email:</b> kumaravishek06246@gmail.com</p>
+            </div>
           </div>
-          <div className="flex gap-2 overflow-x-auto mb-6 pb-2">
-            {['All', ...categories].map(cat => (
-              <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${activeCategory === cat ? 'bg-emerald-500 text-black' : 'bg-slate-800 text-slate-300'}`}>{cat}</button>
-            ))}
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {filteredProducts.map(p => (
-              <div key={p.id} className="bg-slate-800 rounded-lg p-3 border border-slate-700 flex flex-col justify-between">
-                <img src={p.image} alt={p.name} className="w-full h-36 object-cover rounded mb-2" />
-                <div>
-                  <h3 className="font-bold text-xs text-white">{p.name}</h3>
-                  <p className="text-emerald-400 text-xs font-bold mb-3">{p.price}</p>
+
+          <div className="max-w-5xl mx-auto px-4 pb-8">
+            {/* Category Tabs */}
+            <div className="flex gap-2 overflow-x-auto pb-3 mb-6">
+              {['All', ...categories].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                    activeCategory === cat
+                      ? 'bg-emerald-500 text-slate-950 font-bold'
+                      : 'bg-slate-800 text-slate-300 border border-slate-700'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Product Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {filteredProducts.map((p) => (
+                <div key={p.id} className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow flex flex-col justify-between">
+                  <div>
+                    <img src={p.image} alt={p.name} className="w-full h-40 object-cover" />
+                    <div className="p-4">
+                      <span className="text-[10px] bg-slate-900 text-emerald-400 px-2 py-0.5 rounded font-bold">{p.category}</span>
+                      <h3 className="font-bold text-sm text-white mt-2">{p.name}</h3>
+                      <p className="text-emerald-400 font-extrabold text-xs mt-1">{p.price}</p>
+                    </div>
+                  </div>
+                  <div className="p-4 pt-0">
+                    <button
+                      onClick={() => handleWhatsAppInquiry(p.name, p.price)}
+                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded-lg transition-colors shadow"
+                    >
+                      💬 Inquire on WhatsApp
+                    </button>
+                  </div>
                 </div>
-                <button onClick={() => handleWhatsAppInquiry(p.name, p.price)} className="w-full bg-emerald-600 hover:bg-emerald-500 text-xs py-2 rounded font-bold transition-colors">💬 WhatsApp Inquiry</button>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       ) : (
-        <div className="max-w-md mx-auto bg-slate-800 p-6 rounded-xl border border-slate-700">
+        <div className="max-w-md mx-auto px-4 py-8">
           {!firebaseUser ? (
-            <div>
-              <h2 className="text-sm font-bold mb-4 text-center text-white">Owner Portal Login</h2>
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
+              <h2 className="text-base font-bold text-white mb-1 text-center">Owner Portal Login</h2>
+              <p className="text-xs text-slate-400 text-center mb-6">Krishna Traders Admin</p>
+              
               {!isForgotPassword ? (
-                <form onSubmit={handleLogin} className="space-y-3">
-                  <input type="email" placeholder="Firebase Email" required className="w-full p-2 bg-slate-900 text-xs rounded border border-slate-700 text-white" value={email} onChange={e => setEmail(e.target.value)} />
-                  <input type="password" placeholder="Firebase Password" required className="w-full p-2 bg-slate-900 text-xs rounded border border-slate-700 text-white" value={password} onChange={e => setPassword(e.target.value)} />
-                  <button type="submit" className="w-full bg-emerald-600 text-xs py-2 rounded font-bold text-white">Login</button>
-                  <button type="button" onClick={() => setIsForgotPassword(true)} className="text-[11px] text-emerald-400 block mx-auto pt-1">Forgot Password?</button>
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Email</label>
+                    <input 
+                      type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-emerald-500"
+                      placeholder="Firebase Email"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+                    <input 
+                      type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-emerald-500"
+                      placeholder="Firebase Password"
+                    />
+                  </div>
+                  <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs hover:bg-emerald-500 transition-colors">
+                    Login
+                  </button>
+                  <button type="button" onClick={() => setIsForgotPassword(true)} className="text-xs text-emerald-400 hover:underline block text-center w-full">
+                    Forgot Password?
+                  </button>
                 </form>
               ) : (
-                <form onSubmit={handleResetPassword} className="space-y-3">
-                  <input type="email" placeholder="Registered Email" required className="w-full p-2 bg-slate-900 text-xs rounded border border-slate-700 text-white" value={email} onChange={e => setEmail(e.target.value)} />
-                  <button type="submit" className="w-full bg-emerald-600 text-xs py-2 rounded font-bold text-white">Send Password Reset Link</button>
-                  <button type="button" onClick={() => setIsForgotPassword(false)} className="text-[11px] text-slate-400 block mx-auto pt-1">Back to Login</button>
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <input 
+                    type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none"
+                    placeholder="Registered Email"
+                  />
+                  <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs">
+                    Send Password Reset Link
+                  </button>
+                  <button type="button" onClick={() => setIsForgotPassword(false)} className="text-xs text-slate-400 block text-center w-full">
+                    ← Back to Login
+                  </button>
                 </form>
               )}
             </div>
           ) : (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center bg-slate-900 p-2 rounded border border-slate-700">
-                <span className="text-[11px] text-emerald-400">Logged in: {firebaseUser.email}</span>
-                <button onClick={() => signOut(auth)} className="bg-rose-600/30 text-rose-300 text-xs px-2 py-1 rounded font-bold">Logout</button>
+            <div className="space-y-6">
+              <div className="flex justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700">
+                <span className="text-xs text-emerald-400 font-bold">Logged in: {firebaseUser.email}</span>
+                <button onClick={() => signOut(auth)} className="bg-rose-600/30 text-rose-300 text-xs px-3 py-1 rounded-lg font-bold">Sign Out</button>
               </div>
-              <div className="space-y-2">
-                <h3 className="text-xs font-bold text-white">Add Product (Upload Photo)</h3>
-                <form onSubmit={handleAddProduct} className="space-y-2">
-                  <input type="text" placeholder="Product Name" required className="w-full p-2 bg-slate-900 text-xs rounded border border-slate-700 text-white" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
-                  <input type="text" placeholder="Price (e.g. ₹500)" required className="w-full p-2 bg-slate-900 text-xs rounded border border-slate-700 text-white" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} />
-                  <select className="w-full p-2 bg-slate-900 text-xs rounded border border-slate-700 text-white" value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})}>
+
+              <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                <h3 className="font-bold text-xs text-white mb-3">📦 Add New Product (Upload Photo)</h3>
+                <form onSubmit={handleAddProduct} className="space-y-3">
+                  <input type="text" placeholder="Product Name" required className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-xs text-white outline-none" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
+                  <input type="text" placeholder="Price (e.g. ₹500)" required className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-xs text-white outline-none" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} />
+                  <select className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-xs text-white outline-none" value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})}>
                     {categories.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
-                  <input type="file" accept="image/*" onChange={e => handleImageUpload(e, true)} className="text-xs text-slate-400" />
-                  <button type="submit" className="w-full bg-emerald-600 text-xs py-2 rounded font-bold text-white">Publish Product</button>
+                  <input type="file" accept="image/*" onChange={e => handleImageUpload(e, true)} className="w-full text-xs text-slate-400" />
+                  <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-2 rounded text-xs">Publish Product</button>
                 </form>
               </div>
             </div>
@@ -170,4 +247,4 @@ export default function App() {
       )}
     </div>
   );
-                  }
+}
