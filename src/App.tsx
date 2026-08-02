@@ -1,11 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { auth } from "./firebase";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import {
+  getAuth,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   sendPasswordResetEmail
 } from "firebase/auth";
+
+// Direct Firebase Config inside App.tsx (No import issue)
+const firebaseConfig = {
+  apiKey: "AIzaSyBDz6iDnpD0c_K-ike1f0t6aS6KezBaYKs",
+  authDomain: "krishna-traders-a8849.firebaseapp.com",
+  projectId: "krishna-traders-a8849",
+  storageBucket: "krishna-traders-a8849.firebasestorage.app",
+  messagingSenderId: "115202514278",
+  appId: "1:115202514278:web:33e39bba7cca132b8e3ca7"
+};
+
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const auth = getAuth(app);
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("store");
@@ -54,8 +68,9 @@ export default function App() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       alert("Safalta-poorvak Login ho gaya!");
-    } catch (err: any) {
-      alert("Login Fail ho gaya! Kripya wohi Email aur Password daalein jo aapne Firebase Console me banaya tha.");
+    } catch (err: unknown) {
+      const error = err as Error;
+      alert("Login Fail ho gaya! Kripya wohi Email aur Password daalein jo aapne Firebase Console me banaya tha.\nDetails: " + error.message);
     }
   };
 
@@ -70,8 +85,9 @@ export default function App() {
       await sendPasswordResetEmail(auth, email);
       setResetSent(true);
       alert(`Password reset link ${email} par bhej diya gaya hai. Gmail Inbox check karein!`);
-    } catch (err: any) {
-      alert("Error: " + err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      alert("Error: " + error.message);
     }
   };
 
@@ -294,7 +310,7 @@ export default function App() {
               <div className="flex justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700">
                 <div>
                   <h2 className="font-bold text-white text-xs">Welcome, Owner</h2>
-                  <p className="text-[10px] text-emerald-400">Logged in as {firebaseUser.email}</p>
+                  <p className="text-[10px] text-emerald-400">Logged in as {firebaseUser?.email || "Owner"}</p>
                 </div>
                 <button 
                   onClick={handleLogout}
@@ -383,18 +399,4 @@ export default function App() {
                           accept="image/*"
                           onChange={(e) => handleImageUpload(e, false, p.id)}
                           className="w-full text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Add Category */}
-              <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                <h3 className="font-bold text-xs text-white mb-3">📁 Add Category</h3>
-                <form onSubmit={handleAddCategory} className="space-y-3">
-                  <input 
-                    type="text" placeholder="New Category Name" required
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-xs text-white outline-none"
-      
+                 
