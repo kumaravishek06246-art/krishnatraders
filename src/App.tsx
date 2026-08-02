@@ -92,23 +92,21 @@ export default function App() {
   const filteredProducts = activeCategory === 'All' ? products : products.filter(p => p.category === activeCategory);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white font-sans">
-      {/* Tailwind CDN Injection */}
-      <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-
-      {/* Top Bar */}
-      <div className="bg-slate-950 border-b border-slate-800 px-4 py-3 flex justify-between items-center sticky top-0 z-50">
-        <span className="font-bold text-emerald-400 text-sm">📍 KRISHNA TRADERS</span>
-        <div className="flex gap-2">
+    <div style={{ backgroundColor: "#0f172a", color: "#ffffff", minHeight: "100vh", fontFamily: "sans-serif", paddingBottom: "20px" }}>
+      
+      {/* Top Navbar */}
+      <div style={{ backgroundColor: "#020617", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #1e293b", position: "sticky", top: 0, zIndex: 50 }}>
+        <span style={{ color: "#34d399", fontWeight: "bold", fontSize: "14px" }}>📍 KRISHNA TRADERS</span>
+        <div style={{ display: "flex", gap: "8px" }}>
           <button 
             onClick={() => setCurrentPage('store')} 
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentPage === 'store' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-800 text-slate-300'}`}
+            style={{ backgroundColor: currentPage === 'store' ? '#059669' : '#1e293b', color: '#ffffff', padding: "6px 12px", borderRadius: "8px", border: "none", fontSize: "12px", fontWeight: "bold", cursor: "pointer" }}
           >
             Customer View
           </button>
           <button 
             onClick={() => setCurrentPage('admin')} 
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentPage === 'admin' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-800 text-slate-300'}`}
+            style={{ backgroundColor: currentPage === 'admin' ? '#059669' : '#1e293b', color: '#ffffff', padding: "6px 12px", borderRadius: "8px", border: "none", fontSize: "12px", fontWeight: "bold", cursor: "pointer" }}
           >
             Owner View
           </button>
@@ -118,53 +116,59 @@ export default function App() {
       {currentPage === 'store' ? (
         <div>
           {/* Header Banner */}
-          <div className="bg-slate-950 px-6 py-8 text-center border-b border-slate-800 mb-6">
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mb-2 text-white">
-              KRISHNA <span className="text-emerald-400">TRADERS</span>
+          <div style={{ backgroundColor: "#020617", padding: "24px 16px", textAlign: "center", borderBottom: "1px solid #1e293b", marginBottom: "20px" }}>
+            <h1 style={{ fontSize: "24px", fontWeight: "800", color: "#ffffff", margin: "0 0 8px 0" }}>
+              KRISHNA <span style={{ color: "#34d399" }}>TRADERS</span>
             </h1>
-            <p className="text-xs text-slate-400 italic mb-3">
+            <p style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic", margin: "0 0 12px 0" }}>
               "Sahi Budget, Premium Quality – Aapke Ghar Ki Majboot Buniyaad!"
             </p>
-            <div className="max-w-md mx-auto bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 space-y-1 text-left">
-              <p>📍 <b>Address:</b> Pabhera, near Dhanarua, Dist-Patna (Bihar), 804451</p>
-              <p>📧 <b>Email:</b> kumaravishek06246@gmail.com</p>
+            <div style={{ maxWidth: "400px", margin: "0 auto", backgroundColor: "#1e293b", padding: "12px", borderRadius: "10px", border: "1px solid #334155", textAlign: "left", fontSize: "11px", color: "#cbd5e1" }}>
+              <p style={{ margin: "2px 0" }}>📍 <b>Address:</b> Pabhera, near Dhanarua, Dist-Patna (Bihar), 804451</p>
+              <p style={{ margin: "2px 0" }}>📧 <b>Email:</b> kumaravishek06246@gmail.com</p>
             </div>
           </div>
 
-          <div className="max-w-5xl mx-auto px-4 pb-8">
+          <div style={{ maxWidth: "800px", margin: "0 auto", padding: "0 16px" }}>
             {/* Category Tabs */}
-            <div className="flex gap-2 overflow-x-auto pb-3 mb-6">
+            <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "10px", marginBottom: "20px" }}>
               {['All', ...categories].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-                    activeCategory === cat
-                      ? 'bg-emerald-500 text-slate-950 font-bold'
-                      : 'bg-slate-800 text-slate-300 border border-slate-700'
-                  }`}
+                  style={{
+                    backgroundColor: activeCategory === cat ? '#10b981' : '#1e293b',
+                    color: activeCategory === cat ? '#020617' : '#cbd5e1',
+                    padding: "6px 14px",
+                    borderRadius: "20px",
+                    border: "1px solid #334155",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    whiteSpace: "nowrap",
+                    cursor: "pointer"
+                  }}
                 >
                   {cat}
                 </button>
               ))}
             </div>
 
-            {/* Product Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {/* Product Cards Grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
               {filteredProducts.map((p) => (
-                <div key={p.id} className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow flex flex-col justify-between">
+                <div key={p.id} style={{ backgroundColor: "#1e293b", borderRadius: "12px", overflow: "hidden", border: "1px solid #334155", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                   <div>
-                    <img src={p.image} alt={p.name} className="w-full h-40 object-cover" />
-                    <div className="p-4">
-                      <span className="text-[10px] bg-slate-900 text-emerald-400 px-2 py-0.5 rounded font-bold">{p.category}</span>
-                      <h3 className="font-bold text-sm text-white mt-2">{p.name}</h3>
-                      <p className="text-emerald-400 font-extrabold text-xs mt-1">{p.price}</p>
+                    <img src={p.image} alt={p.name} style={{ width: "100%", height: "140px", objectFit: "cover" }} />
+                    <div style={{ padding: "12px" }}>
+                      <span style={{ fontSize: "10px", backgroundColor: "#020617", color: "#34d399", padding: "2px 6px", borderRadius: "4px", fontWeight: "bold" }}>{p.category}</span>
+                      <h3 style={{ fontSize: "13px", fontWeight: "bold", color: "#ffffff", marginTop: "8px", marginBottom: "4px" }}>{p.name}</h3>
+                      <p style={{ color: "#34d399", fontWeight: "800", fontSize: "13px" }}>{p.price}</p>
                     </div>
                   </div>
-                  <div className="p-4 pt-0">
+                  <div style={{ padding: "12px", paddingTop: "0" }}>
                     <button
                       onClick={() => handleWhatsAppInquiry(p.name, p.price)}
-                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded-lg transition-colors shadow"
+                      style={{ width: "100%", backgroundColor: "#059669", color: "#ffffff", border: "none", fontSize: "12px", fontWeight: "bold", padding: "10px", borderRadius: "8px", cursor: "pointer" }}
                     >
                       💬 Inquire on WhatsApp
                     </button>
@@ -175,70 +179,70 @@ export default function App() {
           </div>
         </div>
       ) : (
-        <div className="max-w-md mx-auto px-4 py-8">
+        <div style={{ maxWidth: "400px", margin: "30px auto", padding: "0 16px" }}>
           {!firebaseUser ? (
-            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
-              <h2 className="text-base font-bold text-white mb-1 text-center">Owner Portal Login</h2>
-              <p className="text-xs text-slate-400 text-center mb-6">Krishna Traders Admin</p>
+            <div style={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: "16px", padding: "20px" }}>
+              <h2 style={{ fontSize: "16px", fontWeight: "bold", color: "#ffffff", textAlign: "center", marginBottom: "4px" }}>Owner Portal Login</h2>
+              <p style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center", marginBottom: "16px" }}>Krishna Traders Admin</p>
               
               {!isForgotPassword ? (
-                <form onSubmit={handleLogin} className="space-y-4">
+                <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Email</label>
+                    <label style={{ fontSize: "11px", fontWeight: "bold", color: "#cbd5e1", display: "block", marginBottom: "4px" }}>Email</label>
                     <input 
                       type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-emerald-500"
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", backgroundColor: "#020617", border: "1px solid #334155", color: "#ffffff", fontSize: "12px", boxSizing: "border-box" }}
                       placeholder="Firebase Email"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+                    <label style={{ fontSize: "11px", fontWeight: "bold", color: "#cbd5e1", display: "block", marginBottom: "4px" }}>Password</label>
                     <input 
                       type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-emerald-500"
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", backgroundColor: "#020617", border: "1px solid #334155", color: "#ffffff", fontSize: "12px", boxSizing: "border-box" }}
                       placeholder="Firebase Password"
                     />
                   </div>
-                  <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs hover:bg-emerald-500 transition-colors">
+                  <button type="submit" style={{ width: "100%", backgroundColor: "#059669", color: "#ffffff", fontWeight: "bold", padding: "10px", borderRadius: "6px", border: "none", fontSize: "12px", cursor: "pointer", marginTop: "4px" }}>
                     Login
                   </button>
-                  <button type="button" onClick={() => setIsForgotPassword(true)} className="text-xs text-emerald-400 hover:underline block text-center w-full">
+                  <button type="button" onClick={() => setIsForgotPassword(true)} style={{ background: "none", border: "none", color: "#34d399", fontSize: "11px", cursor: "pointer", marginTop: "4px" }}>
                     Forgot Password?
                   </button>
                 </form>
               ) : (
-                <form onSubmit={handleResetPassword} className="space-y-4">
+                <form onSubmit={handleResetPassword} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   <input 
                     type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none"
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", backgroundColor: "#020617", border: "1px solid #334155", color: "#ffffff", fontSize: "12px", boxSizing: "border-box" }}
                     placeholder="Registered Email"
                   />
-                  <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs">
+                  <button type="submit" style={{ width: "100%", backgroundColor: "#059669", color: "#ffffff", fontWeight: "bold", padding: "10px", borderRadius: "6px", border: "none", fontSize: "12px", cursor: "pointer" }}>
                     Send Password Reset Link
                   </button>
-                  <button type="button" onClick={() => setIsForgotPassword(false)} className="text-xs text-slate-400 block text-center w-full">
+                  <button type="button" onClick={() => setIsForgotPassword(false)} style={{ background: "none", border: "none", color: "#94a3b8", fontSize: "11px", cursor: "pointer" }}>
                     ← Back to Login
                   </button>
                 </form>
               )}
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700">
-                <span className="text-xs text-emerald-400 font-bold">Logged in: {firebaseUser.email}</span>
-                <button onClick={() => signOut(auth)} className="bg-rose-600/30 text-rose-300 text-xs px-3 py-1 rounded-lg font-bold">Sign Out</button>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1e293b", padding: "12px 16px", borderRadius: "10px", border: "1px solid #334155" }}>
+                <span style={{ fontSize: "11px", color: "#34d399", fontWeight: "bold" }}>Logged in: {firebaseUser.email}</span>
+                <button onClick={() => signOut(auth)} style={{ backgroundColor: "#991b1b", color: "#ffffff", fontSize: "11px", padding: "4px 8px", borderRadius: "6px", border: "none", fontWeight: "bold", cursor: "pointer" }}>Sign Out</button>
               </div>
 
-              <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                <h3 className="font-bold text-xs text-white mb-3">📦 Add New Product (Upload Photo)</h3>
-                <form onSubmit={handleAddProduct} className="space-y-3">
-                  <input type="text" placeholder="Product Name" required className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-xs text-white outline-none" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
-                  <input type="text" placeholder="Price (e.g. ₹500)" required className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-xs text-white outline-none" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} />
-                  <select className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-xs text-white outline-none" value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})}>
+              <div style={{ backgroundColor: "#1e293b", padding: "16px", borderRadius: "10px", border: "1px solid #334155" }}>
+                <h3 style={{ fontSize: "12px", fontWeight: "bold", color: "#ffffff", marginBottom: "12px" }}>📦 Add New Product (Upload Photo)</h3>
+                <form onSubmit={handleAddProduct} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <input type="text" placeholder="Product Name" required style={{ width: "100%", padding: "8px", backgroundColor: "#020617", border: "1px solid #334155", borderRadius: "6px", color: "#fff", fontSize: "12px", boxSizing: "border-box" }} value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
+                  <input type="text" placeholder="Price (e.g. ₹500)" required style={{ width: "100%", padding: "8px", backgroundColor: "#020617", border: "1px solid #334155", borderRadius: "6px", color: "#fff", fontSize: "12px", boxSizing: "border-box" }} value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} />
+                  <select style={{ width: "100%", padding: "8px", backgroundColor: "#020617", border: "1px solid #334155", borderRadius: "6px", color: "#fff", fontSize: "12px", boxSizing: "border-box" }} value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})}>
                     {categories.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
-                  <input type="file" accept="image/*" onChange={e => handleImageUpload(e, true)} className="w-full text-xs text-slate-400" />
-                  <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-2 rounded text-xs">Publish Product</button>
+                  <input type="file" accept="image/*" onChange={e => handleImageUpload(e, true)} style={{ fontSize: "11px", color: "#94a3b8" }} />
+                  <button type="submit" style={{ width: "100%", backgroundColor: "#059669", color: "#ffffff", fontWeight: "bold", padding: "8px", borderRadius: "6px", border: "none", fontSize: "12px", cursor: "pointer" }}>Publish Product</button>
                 </form>
               </div>
             </div>
@@ -247,4 +251,4 @@ export default function App() {
       )}
     </div>
   );
-}
+                     }
