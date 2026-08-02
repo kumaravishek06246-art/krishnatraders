@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState, useEffect } from "react";
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, updatePassword } from "firebase/auth";
+import { initializeApp } from "firebase/app";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBDz6iDnpD0c_K-ike1f0t6aS6KezBaYKs",
@@ -12,68 +12,65 @@ const firebaseConfig = {
   appId: "1:115202514278:web:33e39bba7cca132b8e3ca7"
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState("store");
-  const [firebaseUser, setFirebaseUser] = useState(null);
-  const [whatsappNumber, setWhatsappNumber] = useState('919999999999');
-  const [categories, setCategories] = useState(['Cement', 'Sariya & Iron', 'Plumbing', 'Hardware']);
+  const [page, setPage] = useState("store");
+  const [user, setUser] = useState(null);
+  const [whatsapp, setWhatsapp] = useState("919999999999");
   const [products, setProducts] = useState([
-    { id: 1, name: 'UltraTech Cement (50kg)', price: '₹400', category: 'Cement', image: 'https://images.unsplash.com/photo-1517646287270-a5a9ca602e5c?w=400' }
+    { id: 1, name: "UltraTech Cement", price: "₹400", category: "Cement" }
   ]);
-  const [newProduct, setNewProduct] = useState({ name: '', price: '', category: 'Cement', image: '' });
+  const [newProd, setNewProd] = useState({ name: "", price: "", category: "Cement" });
 
-  useEffect(() => { return onAuthStateChanged(auth, (user) => setFirebaseUser(user)); }, []);
+  useEffect(() => { onAuthStateChanged(auth, setUser); }, []);
 
-  const handleWhatsApp = (p) => window.open(`https://wa.me/${whatsappNumber}?text=Interested in ${p.name}`);
-  const addProduct = (e) => { e.preventDefault(); setProducts([...products, { ...newProduct, id: Date.now() }]); };
-  const deleteProduct = (id) => setProducts(products.filter(p => p.id !== id));
+  const handleWA = (p) => window.open(`https://wa.me/${whatsapp}?text=I want ${p.name}`);
+  const addProd = (e) => { e.preventDefault(); setProducts([...products, { ...newProd, id: Date.now() }]); };
+  const delProd = (id) => setProducts(products.filter(p => p.id !== id));
 
   return (
-    <div style={{ backgroundColor: "#0f172a", color: "#fff", minHeight: "100vh", fontFamily: "sans-serif", paddingBottom: "50px" }}>
+    <div style={{ background: "#0f172a", color: "#fff", minHeight: "100vh", padding: "20px" }}>
       {/* Header */}
-      <div style={{ padding: "15px", display: "flex", justifyContent: "space-between", backgroundColor: "#020617" }}>
-        <h2 style={{ fontSize: "16px", color: "#34d399" }}>KRISHNA TRADERS</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
+        <h1 style={{ fontSize: "20px", color: "#34d399" }}>KRISHNA TRADERS</h1>
         <div>
-          <button onClick={() => setCurrentPage('store')} style={{ marginRight: "10px", background: currentPage === 'store' ? '#059669' : '#1e293b', border: 'none', padding: '5px', color: '#fff' }}>Store</button>
-          <button onClick={() => setCurrentPage('admin')} style={{ background: currentPage === 'admin' ? '#059669' : '#1e293b', border: 'none', padding: '5px', color: '#fff' }}>Owner</button>
+          <button onClick={() => setPage("store")} style={{ background: "#1e293b", border: "none", color: "#fff", padding: "5px 10px" }}>Store</button>
+          <button onClick={() => setPage("admin")} style={{ background: "#059669", border: "none", color: "#fff", padding: "5px 10px", marginLeft: "5px" }}>Owner</button>
         </div>
       </div>
 
-      {currentPage === 'store' ? (
-        <div style={{ padding: "20px" }}>
+      {page === "store" ? (
+        <div>
           {products.map(p => (
-            <div key={p.id} style={{ background: "#1e293b", padding: "15px", borderRadius: "10px", marginBottom: "15px" }}>
-              <img src={p.image} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
+            <div key={p.id} style={{ background: "#1e293b", padding: "15px", marginBottom: "10px", borderRadius: "8px" }}>
               <h3>{p.name}</h3>
               <p>{p.price}</p>
-              <button onClick={() => handleWhatsApp(p)} style={{ width: "100%", background: "#059669", padding: "10px", border: 'none', color: '#fff' }}>WhatsApp</button>
+              <button onClick={() => handleWA(p)} style={{ width: "100%", background: "#059669", border: "none", color: "#fff", padding: "10px" }}>Order on WhatsApp</button>
             </div>
           ))}
         </div>
       ) : (
-        <div style={{ padding: "20px" }}>
-          {!firebaseUser ? (
-            <button onClick={() => alert("Login Feature Here")} style={{ width: "100%", padding: "10px" }}>Admin Login</button>
+        <div>
+          {!user ? (
+            <button onClick={() => alert("Requires Firebase Login Logic")} style={{ background: "#059669", width: "100%", padding: "10px" }}>Admin Login</button>
           ) : (
             <div>
-              <div style={{ background: "#1e293b", padding: "15px", marginBottom: "15px" }}>
+              <div style={{ background: "#1e293b", padding: "15px", marginBottom: "20px" }}>
                 <h3>Settings</h3>
-                <input placeholder="WhatsApp Number" onChange={(e) => setWhatsappNumber(e.target.value)} style={{ width: "100%", padding: "5px" }} />
+                <input placeholder="WhatsApp Number" onChange={e => setWhatsapp(e.target.value)} style={{ width: "100%", padding: "8px" }} />
               </div>
               <div style={{ background: "#1e293b", padding: "15px" }}>
-                <h3>Add Product</h3>
-                <input placeholder="Name" onChange={e => setNewProduct({...newProduct, name: e.target.value})} style={{ display: "block", width: "100%", marginBottom: "5px" }} />
-                <input placeholder="Price" onChange={e => setNewProduct({...newProduct, price: e.target.value})} style={{ display: "block", width: "100%", marginBottom: "5px" }} />
-                <button onClick={addProduct} style={{ background: "#059669", color: "#fff", width: "100%", padding: "10px" }}>Add</button>
+                <h3>Add New Product</h3>
+                <input placeholder="Name" onChange={e => setNewProd({...newProd, name: e.target.value})} style={{ width: "100%", marginBottom: "5px", padding: "8px" }} />
+                <input placeholder="Price" onChange={e => setNewProd({...newProd, price: e.target.value})} style={{ width: "100%", marginBottom: "5px", padding: "8px" }} />
+                <button onClick={addProd} style={{ width: "100%", background: "#059669", padding: "10px" }}>Add</button>
               </div>
-              <h3>Manage Products</h3>
+              <h3>Current Products</h3>
               {products.map(p => (
-                <div key={p.id} style={{ background: "#334155", padding: "10px", marginBottom: "5px", display: "flex", justifyContent: "space-between" }}>
-                  <span>{p.name}</span>
-                  <button onClick={() => deleteProduct(p.id)} style={{ background: "#991b1b", color: "#fff" }}>Delete</button>
+                <div key={p.id} style={{ display: "flex", justifyContent: "space-between", background: "#334155", padding: "10px", marginTop: "5px" }}>
+                  {p.name} <button onClick={() => delProd(p.id)} style={{ background: "red" }}>Delete</button>
                 </div>
               ))}
             </div>
