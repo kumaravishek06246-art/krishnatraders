@@ -1,13 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { auth } from "./firebase";
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  sendPasswordResetEmail
+} from "firebase/auth";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("store");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
   
-  // Secure Admin Credentials (Password leak nahi hoga)
-  const [adminAuth, setAdminAuth] = useState({ username: 'admin', password: 'krishna123' });
-  const [newAdmin, setNewAdmin] = useState({ username: '', password: '' });
+  // Firebase Auth State
+  const [firebaseUser, setFirebaseUser] = useState<any>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+
+  // Track Firebase Auth State
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setFirebaseUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const [categories, setCategories] = useState(['Cement', 'Concrete & Sand', 'Sariya & Iron', 'Hardware', 'Plumbing']);
   const [newCategory, setNewCategory] = useState('');
@@ -32,25 +48,36 @@ export default function App() {
     window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  // Firebase Login Handler
+  const handleFirebaseLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (credentials.username === adminAuth.username && credentials.password === adminAuth.password) {
-      setIsLoggedIn(true);
-      setCredentials({ username: '', password: '' });
-    } else {
-      alert("Galat Username ya Password hai! Kripya dobara koshish karein.");
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      alert("Safalta-poorvak Login ho gaya!");
+    } catch (err: any) {
+      alert("Login Fail ho gaya! Kripya wohi Email aur Password daalein jo aapne Firebase Console me banaya tha.");
     }
   };
 
-  const handleUpdateAdmin = (e: React.FormEvent) => {
+  // Firebase Forgot Password Handler
+  const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newAdmin.username && newAdmin.password) {
-      setAdminAuth(newAdmin);
-      setNewAdmin({ username: '', password: '' });
-      alert("Admin username aur password safalta-poorvak badal diye gaye hain!");
-    } else {
-      alert("Kripya dono username aur password bharein!");
+    if (!email) {
+      alert("Kripya apna registered Email daalein!");
+      return;
     }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setResetSent(true);
+      alert(`Password reset link ${email} par bhej diya gaya hai. Gmail Inbox check karein!`);
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  // Firebase Logout Handler
+  const handleLogout = () => {
+    signOut(auth);
   };
 
   const handleAddCategory = (e: React.FormEvent) => {
@@ -62,7 +89,7 @@ export default function App() {
     }
   };
 
-  // Gallery se photo uthane ke liye handler (Sirf Owner Panel ke liye)
+  // Gallery se photo uthane ke liye handler
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isNew: boolean, productId: number | null = null) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -186,72 +213,95 @@ export default function App() {
         </div>
       ) : (
         <div className="max-w-xl mx-auto px-4 py-8">
-          {!isLoggedIn ? (
+          {!firebaseUser ? (
             <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
               <h2 className="text-lg font-bold text-white mb-1 text-center">Owner Portal Login</h2>
-              <p className="text-xs text-slate-400 text-center mb-6">Krishna Traders Admin (Secure)</p>
+              <p className="text-xs text-slate-400 text-center mb-6">Krishna Traders Admin (Firebase Auth)</p>
               
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Username</label>
-                  <input 
-                    type="text" 
-                    value={credentials.username}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-emerald-500"
-                    onChange={(e) => setCredentials({...credentials, username: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Password</label>
-                  <input 
-                    type="password" 
-                    value={credentials.password}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-emerald-500"
-                    onChange={(e) => setCredentials({...credentials, password: e.target.value})}
-                  />
-                </div>
-                <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs hover:bg-emerald-500 transition-colors shadow-lg">
-                  Login to Dashboard
-                </button>
-              </form>
+              {!isForgotPassword ? (
+                <form onSubmit={handleFirebaseLogin} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Owner Email</label>
+                    <input 
+                      type="email" 
+                      required
+                      value={email}
+                      placeholder="Enter Firebase Email"
+                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-emerald-500"
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-xs font-semibold text-slate-300">Password</label>
+                      <button
+                        type="button"
+                        onClick={() => setIsForgotPassword(true)}
+                        className="text-[11px] text-emerald-400 hover:underline font-medium"
+                      >
+                        Forgot Password?
+                      </button>
+                    </div>
+                    <input 
+                      type="password" 
+                      required
+                      value={password}
+                      placeholder="Enter Firebase Password"
+                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-emerald-500"
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
+                  <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs hover:bg-emerald-500 transition-colors shadow-lg">
+                    Login to Dashboard
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <p className="text-xs text-slate-300 text-center">
+                    Registered Email daalein. Password reset link aapke Gmail par bhej diya jayega.
+                  </p>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Your Registered Email</label>
+                    <input 
+                      type="email" 
+                      required
+                      value={email}
+                      placeholder="Enter your email"
+                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-emerald-500"
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                  {resetSent && (
+                    <p className="text-xs text-emerald-400 text-center font-bold">
+                      ✅ Reset link sent! Check your email inbox.
+                    </p>
+                  )}
+                  <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-xs hover:bg-emerald-500 transition-colors shadow-lg">
+                    Send Password Reset Link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsForgotPassword(false)}
+                    className="w-full text-xs text-slate-400 hover:text-white text-center font-semibold block pt-2"
+                  >
+                    ← Back to Login
+                  </button>
+                </form>
+              )}
             </div>
           ) : (
             <div className="space-y-6">
               <div className="flex justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700">
                 <div>
                   <h2 className="font-bold text-white text-xs">Welcome, Owner</h2>
-                  <p className="text-[10px] text-emerald-400">Secure Access Active</p>
+                  <p className="text-[10px] text-emerald-400">Logged in as {firebaseUser.email}</p>
                 </div>
                 <button 
-                  onClick={() => setIsLoggedIn(false)}
+                  onClick={handleLogout}
                   className="bg-rose-600/20 text-rose-400 border border-rose-600/30 text-xs px-3 py-1.5 rounded-lg font-semibold"
                 >
-                  Logout
+                  Sign Out
                 </button>
-              </div>
-
-              {/* Change Username & Password Form */}
-              <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                <h3 className="font-bold text-xs text-white mb-3">🔐 Change Admin Username & Password</h3>
-                <form onSubmit={handleUpdateAdmin} className="space-y-3">
-                  <input 
-                    type="text" 
-                    placeholder="New Username"
-                    value={newAdmin.username} 
-                    onChange={e => setNewAdmin({...newAdmin, username: e.target.value})}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-xs text-white outline-none focus:border-emerald-500"
-                  />
-                  <input 
-                    type="password" 
-                    placeholder="New Password"
-                    value={newAdmin.password} 
-                    onChange={e => setNewAdmin({...newAdmin, password: e.target.value})}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-xs text-white outline-none focus:border-emerald-500"
-                  />
-                  <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-2 rounded text-xs">
-                    Update Login Details
-                  </button>
-                </form>
               </div>
 
               {/* Edit WhatsApp Number Form */}
@@ -347,18 +397,4 @@ export default function App() {
                   <input 
                     type="text" placeholder="New Category Name" required
                     className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-xs text-white outline-none"
-                    value={newCategory} onChange={e => setNewCategory(e.target.value)}
-                  />
-                  <button type="submit" className="w-full bg-slate-950 text-white font-bold py-2 rounded text-xs border border-slate-700">
-                    Create Category
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-        }
-                
+      
