@@ -6,19 +6,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  sendPasswordResetEmail,
-  updatePassword
+  sendPasswordResetEmail
 } from "firebase/auth";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  setDoc,
-  onSnapshot
-} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBDz6iDnpD0c_K-ike1f0t6aS6KezBaYKs",
@@ -31,7 +20,6 @@ const firebaseConfig = {
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
-const db = getFirestore(app);
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("store");
@@ -39,31 +27,16 @@ export default function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-
   const [whatsappNumber, setWhatsappNumber] = useState('919999999999');
   const [categories, setCategories] = useState(['Cement', 'Sariya & Iron', 'Plumbing', 'Hardware']);
   const [activeCategory, setActiveCategory] = useState('All');
-  const [newCategory, setNewCategory] = useState('');
 
-  const [products, setProducts] = useState([]);
-  const [editingId, setEditingId] = useState(null);
-  const [newProduct, setNewProduct] = useState({ name: '', price: '', category: 'Cement', description: '', image: '' });
+  const [products, setProducts] = useState([
+    { id: 1, name: 'UltraTech Cement (50kg)', price: '₹400', category: 'Cement', image: 'https://images.unsplash.com/photo-1517646287270-a5a9ca602e5c?w=400' },
+    { id: 2, name: 'TATA Tiscon 550SD Sariya (12mm)', price: '₹75/kg', category: 'Sariya & Iron', image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400' }
+  ]);
 
-  useEffect(() => {
-    const unsubSettings = onSnapshot(doc(db, "settings", "storeInfo"), (docSnap) => {
-      if (docSnap.exists()) {
-        setWhatsappNumber(docSnap.data().whatsapp || '919999999999');
-        setCategories(docSnap.data().categories || ['Cement', 'Sariya & Iron', 'Plumbing', 'Hardware']);
-      }
-    });
-    const unsubProducts = onSnapshot(collection(db, "products"), (snapshot) => {
-      const prodsList = [];
-      snapshot.forEach((d) => prodsList.push({ id: d.id, ...d.data() }));
-      setProducts(prodsList);
-    });
-    return () => { unsubSettings(); unsubProducts(); };
-  }, []);
+  const [newProduct, setNewProduct] = useState({ name: '', price: '', category: 'Cement', image: 'https://images.unsplash.com/photo-1517646287270-a5a9ca602e5c?w=400' });
 
   useEffect(() => {
     return onAuthStateChanged(auth, (user) => setFirebaseUser(user));
@@ -78,6 +51,7 @@ export default function App() {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      alert("Login Successful!");
     } catch (err) {
       alert("Login Error: " + err.message);
     }
@@ -89,82 +63,29 @@ export default function App() {
     try {
       await sendPasswordResetEmail(auth, email);
       alert("Password reset link aapke Email par bhej diya gaya hai!");
-      setIsForgotPassword(false);
     } catch (err) {
       alert("Error: " + err.message);
     }
   };
 
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    if (!newPassword) return;
-    try {
-      await updatePassword(auth.currentUser, newPassword);
-      alert("Password successfully change ho gaya hai!");
-      setNewPassword('');
-    } catch (err) {
-      alert("Error: " + err.message);
-    }
-  };
-
-  const saveSettingsToFirestore = async (wa, cats) => {
-    try {
-      await setDoc(doc(db, "settings", "storeInfo"), { whatsapp: wa, categories: cats });
-    } catch (err) {
-      alert("Database error!");
-    }
-  };
-
-  const handleUpdateWhatsApp = () => {
-    saveSettingsToFirestore(whatsappNumber, categories);
-    alert("WhatsApp Number Update ho gaya!");
-  };
-
-  const handleAddCategory = () => {
-    if (newCategory && !categories.includes(newCategory)) {
-      const updatedCats = [...categories, newCategory];
-      saveSettingsToFirestore(whatsappNumber, updatedCats);
-      setNewCategory('');
-      alert("New Category Add ho gayi!");
-    }
-  };
-
-  const handleImageUpload = (e) => {
+  const handleImageUpload = (e, isNew, pId = null) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setNewProduct({ ...newProduct, image: reader.result });
+      reader.onloadend = () => {
+        if (isNew) setNewProduct({ ...newProduct, image: reader.result });
+        else setProducts(products.map(p => p.id === pId ? { ...p, image: reader.result } : p));
+      };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleAddOrUpdateProduct = async (e) => {
+  const handleAddProduct = (e) => {
     e.preventDefault();
-    if (!newProduct.name || !newProduct.price) return alert("Product ka Naam aur Daam daalna jaruri hai!");
-    try {
-      if (editingId) {
-        await updateDoc(doc(db, "products", editingId), newProduct);
-        alert("Product Update ho gaya!");
-        setEditingId(null);
-      } else {
-        await addDoc(collection(db, "products"), newProduct);
-        alert("Naya Product jud gaya!");
-      }
-      setNewProduct({ name: '', price: '', category: categories[0] || 'Cement', description: '', image: '' });
-    } catch (err) {
-      alert("Error saving product: " + err.message);
-    }
-  };
-
-  const handleEditClick = (p) => {
-    setEditingId(p.id);
-    setNewProduct({ name: p.name, price: p.price, category: p.category, description: p.description || '', image: p.image || '' });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleDeleteProduct = async (id) => {
-    if (window.confirm("Aap sach mein is product ko delete karna chahte hain?")) {
-      await deleteDoc(doc(db, "products", id));
+    if (newProduct.name && newProduct.price) {
+      setProducts([...products, { ...newProduct, id: Date.now() }]);
+      setNewProduct({ name: '', price: '', category: categories[0], image: 'https://images.unsplash.com/photo-1517646287270-a5a9ca602e5c?w=400' });
+      alert("Product jud gaya hai!");
     }
   };
 
@@ -172,36 +93,85 @@ export default function App() {
 
   return (
     <div style={{ backgroundColor: "#0f172a", color: "#ffffff", minHeight: "100vh", fontFamily: "sans-serif", paddingBottom: "20px" }}>
+      
+      {/* Top Navbar */}
       <div style={{ backgroundColor: "#020617", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #1e293b", position: "sticky", top: 0, zIndex: 50 }}>
         <span style={{ color: "#34d399", fontWeight: "bold", fontSize: "14px" }}>📍 KRISHNA TRADERS</span>
         <div style={{ display: "flex", gap: "8px" }}>
-          <button onClick={() => setCurrentPage('store')} style={{ backgroundColor: currentPage === 'store' ? '#059669' : '#1e293b', color: '#ffffff', padding: "6px 12px", borderRadius: "8px", border: "none", fontSize: "12px", fontWeight: "bold", cursor: "pointer" }}>Customer</button>
-          <button onClick={() => setCurrentPage('admin')} style={{ backgroundColor: currentPage === 'admin' ? '#059669' : '#1e293b', color: '#ffffff', padding: "6px 12px", borderRadius: "8px", border: "none", fontSize: "12px", fontWeight: "bold", cursor: "pointer" }}>Owner</button>
+          <button 
+            onClick={() => setCurrentPage('store')} 
+            style={{ backgroundColor: currentPage === 'store' ? '#059669' : '#1e293b', color: '#ffffff', padding: "6px 12px", borderRadius: "8px", border: "none", fontSize: "12px", fontWeight: "bold", cursor: "pointer" }}
+          >
+            Customer View
+          </button>
+          <button 
+            onClick={() => setCurrentPage('admin')} 
+            style={{ backgroundColor: currentPage === 'admin' ? '#059669' : '#1e293b', color: '#ffffff', padding: "6px 12px", borderRadius: "8px", border: "none", fontSize: "12px", fontWeight: "bold", cursor: "pointer" }}
+          >
+            Owner View
+          </button>
         </div>
       </div>
 
       {currentPage === 'store' ? (
         <div>
+          {/* Header Banner */}
           <div style={{ backgroundColor: "#020617", padding: "24px 16px", textAlign: "center", borderBottom: "1px solid #1e293b", marginBottom: "20px" }}>
-            <h1 style={{ fontSize: "24px", fontWeight: "800", color: "#ffffff", margin: "0 0 8px 0" }}>KRISHNA <span style={{ color: "#34d399" }}>TRADERS</span></h1>
-            <p style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic", margin: "0 0 12px 0" }}>"Sahi Budget, Premium Quality!"</p>
+            <h1 style={{ fontSize: "24px", fontWeight: "800", color: "#ffffff", margin: "0 0 8px 0" }}>
+              KRISHNA <span style={{ color: "#34d399" }}>TRADERS</span>
+            </h1>
+            <p style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic", margin: "0 0 12px 0" }}>
+              "Sahi Budget, Premium Quality – Aapke Ghar Ki Majboot Buniyaad!"
+            </p>
+            <div style={{ maxWidth: "400px", margin: "0 auto", backgroundColor: "#1e293b", padding: "12px", borderRadius: "10px", border: "1px solid #334155", textAlign: "left", fontSize: "11px", color: "#cbd5e1" }}>
+              <p style={{ margin: "2px 0" }}>📍 <b>Address:</b> Pabhera, near Dhanarua, Dist-Patna (Bihar), 804451</p>
+              <p style={{ margin: "2px 0" }}>📧 <b>Email:</b> kumaravishek06246@gmail.com</p>
+            </div>
           </div>
+
           <div style={{ maxWidth: "800px", margin: "0 auto", padding: "0 16px" }}>
+            {/* Category Tabs */}
             <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "10px", marginBottom: "20px" }}>
               {['All', ...categories].map((cat) => (
-                <button key={cat} onClick={() => setActiveCategory(cat)} style={{ backgroundColor: activeCategory === cat ? '#10b981' : '#1e293b', color: activeCategory === cat ? '#020617' : '#cbd5e1', padding: "6px 14px", borderRadius: "20px", border: "1px solid #334155", fontSize: "12px", fontWeight: "bold", cursor: "pointer" }}>{cat}</button>
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  style={{
+                    backgroundColor: activeCategory === cat ? '#10b981' : '#1e293b',
+                    color: activeCategory === cat ? '#020617' : '#cbd5e1',
+                    padding: "6px 14px",
+                    borderRadius: "20px",
+                    border: "1px solid #334155",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    whiteSpace: "nowrap",
+                    cursor: "pointer"
+                  }}
+                >
+                  {cat}
+                </button>
               ))}
             </div>
+
+            {/* Product Cards Grid */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
               {filteredProducts.map((p) => (
-                <div key={p.id} style={{ backgroundColor: "#1e293b", borderRadius: "12px", overflow: "hidden", border: "1px solid #334155" }}>
-                  {p.image && <img src={p.image} alt={p.name} style={{ width: "100%", height: "140px", objectFit: "cover" }} />}
-                  <div style={{ padding: "12px" }}>
-                    <span style={{ fontSize: "10px", backgroundColor: "#020617", color: "#34d399", padding: "2px 6px", borderRadius: "4px" }}>{p.category}</span>
-                    <h3 style={{ fontSize: "13px", fontWeight: "bold", color: "#ffffff", marginTop: "8px" }}>{p.name}</h3>
-                    <p style={{ color: "#34d399", fontWeight: "800", fontSize: "13px" }}>{p.price}</p>
-                    {p.description && <p style={{ fontSize: "11px", color: "#cbd5e1", marginTop: "6px" }}>{p.description}</p>}
-                    <button onClick={() => handleWhatsAppInquiry(p.name, p.price)} style={{ width: "100%", backgroundColor: "#059669", color: "#ffffff", border: "none", fontSize: "12px", marginTop: "10px", padding: "10px", borderRadius: "8px", cursor: "pointer" }}>💬 Inquire</button>
+                <div key={p.id} style={{ backgroundColor: "#1e293b", borderRadius: "12px", overflow: "hidden", border: "1px solid #334155", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div>
+                    <img src={p.image} alt={p.name} style={{ width: "100%", height: "140px", objectFit: "cover" }} />
+                    <div style={{ padding: "12px" }}>
+                      <span style={{ fontSize: "10px", backgroundColor: "#020617", color: "#34d399", padding: "2px 6px", borderRadius: "4px", fontWeight: "bold" }}>{p.category}</span>
+                      <h3 style={{ fontSize: "13px", fontWeight: "bold", color: "#ffffff", marginTop: "8px", marginBottom: "4px" }}>{p.name}</h3>
+                      <p style={{ color: "#34d399", fontWeight: "800", fontSize: "13px" }}>{p.price}</p>
+                    </div>
+                  </div>
+                  <div style={{ padding: "12px", paddingTop: "0" }}>
+                    <button
+                      onClick={() => handleWhatsAppInquiry(p.name, p.price)}
+                      style={{ width: "100%", backgroundColor: "#059669", color: "#ffffff", border: "none", fontSize: "12px", fontWeight: "bold", padding: "10px", borderRadius: "8px", cursor: "pointer" }}
+                    >
+                      💬 Inquire on WhatsApp
+                    </button>
                   </div>
                 </div>
               ))}
@@ -209,42 +179,77 @@ export default function App() {
           </div>
         </div>
       ) : (
-        <div style={{ maxWidth: "450px", margin: "30px auto", padding: "0 16px" }}>
-           {!firebaseUser ? (
-             <div style={{ backgroundColor: "#1e293b", padding: "20px", borderRadius: "16px" }}>
-                <h2 style={{ textAlign: "center", color: "#fff" }}>Owner Login</h2>
+        <div style={{ maxWidth: "400px", margin: "30px auto", padding: "0 16px" }}>
+          {!firebaseUser ? (
+            <div style={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: "16px", padding: "20px" }}>
+              <h2 style={{ fontSize: "16px", fontWeight: "bold", color: "#ffffff", textAlign: "center", marginBottom: "4px" }}>Owner Portal Login</h2>
+              <p style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center", marginBottom: "16px" }}>Krishna Traders Admin</p>
+              
+              {!isForgotPassword ? (
                 <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <input type="email" placeholder="Email" required value={email} onChange={e => setEmail(e.target.value)} style={{ padding: "8px", backgroundColor: "#020617", border: "1px solid #334155", color: "#fff" }} />
-                  <input type="password" placeholder="Password" required value={password} onChange={e => setPassword(e.target.value)} style={{ padding: "8px", backgroundColor: "#020617", border: "1px solid #334155", color: "#fff" }} />
-                  <button type="submit" style={{ backgroundColor: "#059669", color: "#fff", padding: "10px", border: "none" }}>Login</button>
+                  <div>
+                    <label style={{ fontSize: "11px", fontWeight: "bold", color: "#cbd5e1", display: "block", marginBottom: "4px" }}>Email</label>
+                    <input 
+                      type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", backgroundColor: "#020617", border: "1px solid #334155", color: "#ffffff", fontSize: "12px", boxSizing: "border-box" }}
+                      placeholder="Firebase Email"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "11px", fontWeight: "bold", color: "#cbd5e1", display: "block", marginBottom: "4px" }}>Password</label>
+                    <input 
+                      type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", backgroundColor: "#020617", border: "1px solid #334155", color: "#ffffff", fontSize: "12px", boxSizing: "border-box" }}
+                      placeholder="Firebase Password"
+                    />
+                  </div>
+                  <button type="submit" style={{ width: "100%", backgroundColor: "#059669", color: "#ffffff", fontWeight: "bold", padding: "10px", borderRadius: "6px", border: "none", fontSize: "12px", cursor: "pointer", marginTop: "4px" }}>
+                    Login
+                  </button>
+                  <button type="button" onClick={() => setIsForgotPassword(true)} style={{ background: "none", border: "none", color: "#34d399", fontSize: "11px", cursor: "pointer", marginTop: "4px" }}>
+                    Forgot Password?
+                  </button>
                 </form>
-             </div>
-           ) : (
-             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                <button onClick={() => signOut(auth)} style={{ backgroundColor: "#991b1b", color: "#fff", padding: "8px" }}>Sign Out</button>
-                <div style={{ backgroundColor: "#1e293b", padding: "16px", borderRadius: "10px" }}>
-                  <h3 style={{ color: "#fff" }}>⚙️ Settings</h3>
-                  <input type="text" value={whatsappNumber} onChange={e => setWhatsappNumber(e.target.value)} style={{ width: "100%", padding: "8px", backgroundColor: "#020617", border: "1px solid #334155", color: "#fff" }} />
-                  <button onClick={handleUpdateWhatsApp} style={{ marginTop: "8px", backgroundColor: "#059669", color: "#fff", padding: "8px" }}>Update WhatsApp</button>
-                </div>
-                <div style={{ backgroundColor: "#1e293b", padding: "16px", borderRadius: "10px" }}>
-                  <h3 style={{ color: "#34d399" }}>{editingId ? "Edit" : "Add"} Product</h3>
-                  <form onSubmit={handleAddOrUpdateProduct} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <input type="text" placeholder="Name" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} style={{ padding: "8px", backgroundColor: "#020617", border: "1px solid #334155", color: "#fff" }} />
-                    <input type="text" placeholder="Price" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} style={{ padding: "8px", backgroundColor: "#020617", border: "1px solid #334155", color: "#fff" }} />
-                    <select value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})} style={{ padding: "8px", backgroundColor: "#020617", border: "1px solid #334155", color: "#fff" }}>
-                      {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    <textarea placeholder="Description" value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} style={{ padding: "8px", backgroundColor: "#020617", border: "1px solid #334155", color: "#fff" }} />
-                    <input type="file" onChange={handleImageUpload} />
-                    <button type="submit" style={{ backgroundColor: "#059669", color: "#fff", padding: "8px" }}>Save Product</button>
-                  </form>
-                </div>
-             </div>
-           )}
+              ) : (
+                <form onSubmit={handleResetPassword} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <input 
+                    type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", backgroundColor: "#020617", border: "1px solid #334155", color: "#ffffff", fontSize: "12px", boxSizing: "border-box" }}
+                    placeholder="Registered Email"
+                  />
+                  <button type="submit" style={{ width: "100%", backgroundColor: "#059669", color: "#ffffff", fontWeight: "bold", padding: "10px", borderRadius: "6px", border: "none", fontSize: "12px", cursor: "pointer" }}>
+                    Send Password Reset Link
+                  </button>
+                  <button type="button" onClick={() => setIsForgotPassword(false)} style={{ background: "none", border: "none", color: "#94a3b8", fontSize: "11px", cursor: "pointer" }}>
+                    ← Back to Login
+                  </button>
+                </form>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1e293b", padding: "12px 16px", borderRadius: "10px", border: "1px solid #334155" }}>
+                <span style={{ fontSize: "11px", color: "#34d399", fontWeight: "bold" }}>Logged in: {firebaseUser.email}</span>
+                <button onClick={() => signOut(auth)} style={{ backgroundColor: "#991b1b", color: "#ffffff", fontSize: "11px", padding: "4px 8px", borderRadius: "6px", border: "none", fontWeight: "bold", cursor: "pointer" }}>Sign Out</button>
+              </div>
+
+              <div style={{ backgroundColor: "#1e293b", padding: "16px", borderRadius: "10px", border: "1px solid #334155" }}>
+                <h3 style={{ fontSize: "12px", fontWeight: "bold", color: "#ffffff", marginBottom: "12px" }}>📦 Add New Product (Upload Photo)</h3>
+                <form onSubmit={handleAddProduct} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <input type="text" placeholder="Product Name" required style={{ width: "100%", padding: "8px", backgroundColor: "#020617", border: "1px solid #334155", borderRadius: "6px", color: "#fff", fontSize: "12px", boxSizing: "border-box" }} value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
+                  <input type="text" placeholder="Price (e.g. ₹500)" required style={{ width: "100%", padding: "8px", backgroundColor: "#020617", border: "1px solid #334155", borderRadius: "6px", color: "#fff", fontSize: "12px", boxSizing: "border-box" }} value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} />
+                  <select style={{ width: "100%", padding: "8px", backgroundColor: "#020617", border: "1px solid #334155", borderRadius: "6px", color: "#fff", fontSize: "12px", boxSizing: "border-box" }} value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})}>
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <input type="file" accept="image/*" onChange={e => handleImageUpload(e, true)} style={{ fontSize: "11px", color: "#94a3b8" }} />
+                  <button type="submit" style={{ width: "100%", backgroundColor: "#059669", color: "#ffffff", fontWeight: "bold", padding: "8px", borderRadius: "6px", border: "none", fontSize: "12px", cursor: "pointer" }}>Publish Product</button>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
-      }
-                    
+                    }
+                  
